@@ -1,13 +1,12 @@
 # 忽略workspace目录下除了data_weather_by_day之外的所有文件和文件夹  
 workspace/*  
+npy/*
 !workspace/data_weather_by_day/  
 # 忽略data_weather_by_day目录下所有文件夹中的.csv文件  
 workspace/data_weather_by_day/**/*.csv
- __pycache__
- __pycache__/*
- npy
- npy/*
+__pycache__
+__pycache__/*
 # 忽略日志信息
- log
- log/*
- tools/__pycache__
+log
+log/*
+tools/__pycache__
