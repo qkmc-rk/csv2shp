@@ -1,0 +1,11 @@
+开始处理,年份: 2004 , 类型数据: te
+开始加载数据...
+npy文件已生成...开始加载...
+Traceback (most recent call last):
+  File "d:/VSCodeProjects/csv2shp/tif_process_to_hurrican_year_result.py", line 90, in <module>
+    images_3d = np.load(f'./npy/{prefix}_wind_images_3d.npy')
+  File "C:\Users\sicau\.conda\envs\python38_2\lib\site-packages\numpy\lib\npyio.py", line 432, in load
+    return format.read_array(fid, allow_pickle=allow_pickle,
+  File "C:\Users\sicau\.conda\envs\python38_2\lib\site-packages\numpy\lib\format.py", line 801, in read_array
+    array = numpy.fromfile(fp, dtype=dtype, count=count)
+numpy.core._exceptions.MemoryError: Unable to allocate 16.3 GiB for an array with shape (8762042905,) and data type float16

@@ -1,0 +1,7 @@
+开始处理,年份: 2004 , 类型数据: te
+开始加载数据...
+npy文件不存在...开始读取并生成...
+Traceback (most recent call last):
+  File "d:/VSCodeProjects/csv2shp/tif_process_to_hurrican_year_result.py", line 96, in <module>
+    image_data = src.read(1)  # 读取第一个波段
+KeyboardInterrupt
