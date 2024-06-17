@@ -30,7 +30,7 @@ def rule(tensor):
 # 定义一个函数来从文件名中提取日期  
 def extract_date_from_filename(filename):
     basename = os.path.basename(filename)
-    year_month_day = basename[len('raster_wi'):-4]
+    year_month_day = basename[len('raster_wa'):-4]
     parts = year_month_day.split('_')
     year = int(parts[0][:4])
     month = int(parts[0][4:])
