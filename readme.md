@@ -20,3 +20,7 @@ arcpy.management.CopyRaster(r"D:\VSCodeProjects\csv2shp\workspace\geodatabase.gd
 ```
 
 > conda装pytorch: conda install pytorch torchvision torchaudio pytorch-cuda=12.1 -c pytorch -c nvidia
+
+
+### 2024-6-12
+- 由于water的2019 12-12数据缺失，所以采用12-11的数据代替

@@ -17,17 +17,15 @@ raster_list = arcpy.ListRasters()
 existed_tiff = os.listdir(tiff_save_path) # 列表读入内存，直接在内存中检查文件是否存在，效率更高
 tiff_types = ['wendu', 'jiangyu', 'fengsu']
 
-# raster_list = [item for item in raster_list if '2022' in item or '2019' in item]
+raster_list = [item for item in raster_list if '2019' in item and ('20198' not in item or '20199' not in item)]
 
 total = len(raster_list)
 if len(raster_list) > 0:
     for index, raster_name in enumerate(raster_list):
-        print('正在处理:', "{:.2%}".format(index/total))
+        print('正在处理:', "{:.2%}".format(index/total), raster_name)
         # 跳过存在的文件
         if raster_list[index] in existed_tiff:
-            print(raster_list[index])
-            print(existed_tiff)
-            print('已经存在,不必再次生成...')
+            print(raster_list[index], existed_tiff, '已经存在,不必再次生成...')
         raster = os.path.join(raster_db, raster_list[index])
         tiff_type = 'wendu'
         if 'te' in raster_list[index]:
