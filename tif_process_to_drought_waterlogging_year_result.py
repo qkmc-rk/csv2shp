@@ -22,10 +22,46 @@ dotenv.load_dotenv('.env')
 root_dir = os.getenv('root_dir')
 tif_data_dir = os.getenv('tif_data_dir')
 
-def rule(tensor):
-    result = np.zeros((tensor.shape[1], tensor.shape[2]), dtype=np.int8)
-    return result
+def max_one_serial(tensor):
+    # 在由0和1组成的tensor中找到最大1的子序列
+    if tensor.size() != torch.Size([365]) or tensor.size() != torch.Size([365]):
+        print('tensor大小不是365或者366，无法继续处理', tensor.shape)
+        exit()
+    # 初始化计数器来跟踪当前连续1的数量和最长连续1的数量  
+    current_count = 0  
+    max_count = 0  
+    # 遍历tensor  
+    for i in range(tensor.shape[0]):  
+        if tensor[i] == 1:  
+            # 如果当前元素是1，则增加计数器  
+            current_count += 1
+        else:  
+            # 如果当前元素是0，则重置计数器，并检查是否需要更新最长计数  
+            if current_count > max_count:  
+                max_count = current_count  
+            current_count = 0  
+    # 检查最后一个序列（如果它以1结束）  
+    if current_count > max_count:  
+        max_count = current_count  
+    # 打印结果  
+    if max_count >= 30:
+        return 1
+    else:
+        return 0
 
+def rule(tensor):
+    # 确保输入tensor的维度和类型是正确的  
+    height, width = tensor.size(1), tensor.size(2)  # 4391   5467
+    threshold = 5.  # 阈值
+    result = torch.zeros((height, width), dtype=tensor.dtype)
+    tmp = torch.zeros(tensor.shape[0], dtype=torch.float16)
+    for row in trange(height):
+        for col in range(width):
+            # 处理 [365]的数据
+            tmp = tensor[ : ,row, col]
+            tmp = (tmp < threshold).to(torch.int8)
+            result[row, col] = max_one_serial(tmp)
+    return result
 
 # 定义一个函数来从文件名中提取日期  
 def extract_date_from_filename(filename):
@@ -47,7 +83,6 @@ if 'te' in tiff_dir or 'wi' in tiff_dir or 'wa' in tiff_dir:
 # 获取所有以'raster_wa'开头的TIFF文件  
 tiff_files = glob.glob(os.path.join(tiff_dir, 'raster_wa*.tif'))
 tiff_files_const = tiff_files
-
 data_year = ['2004', '2007', '2010', '2013', '2016', '2019', '2022'] # 2004,2007,2010,2013,2016,2019,2022
 
 height, width = 4391, 5467  #
@@ -58,13 +93,12 @@ for year in data_year:
     tiff_files = [item for item in tiff_files_const if prefix in item]
     print('处理列表:',year,  len(tiff_files))
     # 空数据直接跳过
-    continue
     if len(tiff_files) == 0:
         continue
     sorted_files = sorted(tiff_files, key=extract_date_from_filename)
     sorted_files = sorted_files[:file_num]  # 计算一年365个数据
     # 要存储的尺寸
-    images_3d = np.empty((len(sorted_files), height, width), dtype=np.int8)  # 初始化三维数组
+    images_3d = np.empty((len(sorted_files), height, width), dtype=np.float16)  # 初始化三维数组
     # 保留一些有用的信息,坐标信息等
     t = rasterio.open(sorted_files[0])
     transform, crs = t.transform, t.crs
@@ -80,13 +114,8 @@ for year in data_year:
             with rasterio.open(file) as src:
                 print(index, ', ', file)
                 image_data = src.read(1)  # 读取第一个波段
-                # 创建一个新的数组来存储结果（或者你可以直接修改 image_data）
-                new_image_data = np.zeros_like(image_data, dtype=np.int8)  # 使用 int8 类型来存储 0, 1, 2
-                # 使用条件索引来更新 new_image_data
-                new_image_data[(image_data >= 17) & (image_data < 24.5)] = 1
-                new_image_data[image_data >= 24.5] = 2
-                images_3d[index, :, :] = new_image_data
-        np.save(f'./npy/{prefix}_wind_images_3d.npy', images_3d)
+                images_3d[index, :, :] = image_data
+        np.save(f'./npy/{prefix}_water_images_3d.npy', images_3d)
     print('数据加载完成...')
     print('开始将numpy.ndarray转换为tensor...')
     images_3d = torch.from_numpy(images_3d)
