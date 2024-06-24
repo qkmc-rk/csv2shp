@@ -23,31 +23,17 @@ root_dir = os.getenv('root_dir')
 tif_data_dir = os.getenv('tif_data_dir')
 
 def max_one_serial(tensor):
-    # 在由0和1组成的tensor中找到最大1的子序列
-    if tensor.size() != torch.Size([365]) or tensor.size() != torch.Size([365]):
-        print('tensor大小不是365或者366，无法继续处理', tensor.shape)
-        exit()
-    # 初始化计数器来跟踪当前连续1的数量和最长连续1的数量  
-    current_count = 0  
-    max_count = 0  
-    # 遍历tensor  
-    for i in range(tensor.shape[0]):  
-        if tensor[i] == 1:  
-            # 如果当前元素是1，则增加计数器  
-            current_count += 1
-        else:  
-            # 如果当前元素是0，则重置计数器，并检查是否需要更新最长计数  
-            if current_count > max_count:  
-                max_count = current_count  
-            current_count = 0  
-    # 检查最后一个序列（如果它以1结束）  
-    if current_count > max_count:  
-        max_count = current_count  
-    # 打印结果  
-    if max_count >= 30:
-        return 1
-    else:
-        return 0
+    #  这里传入的tensor是一个向量
+    tensor_padded = torch.cat(
+        [torch.tensor([0], dtype=torch.uint8), (tensor > 0).float(), torch.tensor([0], dtype=torch.uint8)])
+    # Find start and end indices of sequences
+    diff = tensor_padded[1:] - tensor_padded[:-1]
+    starts = (diff > 0).nonzero()[:, 0].tolist()  # 注意：这里我们使用了 [:, 0] 来选择列，但这与 .squeeze() 类似（当且仅当为二维时）
+    ends = (diff < 0).nonzero()[:, 0].tolist()    # 同样的，这里也使用了 [:, 0]  
+    # Identify sequences meeting criteria
+    count = sum(1 for start, end in zip(starts, ends) if end - start >= 30)
+    return 1 if count >= 1 else 0
+    
 
 def rule(tensor):
     # 确保输入tensor的维度和类型是正确的  
@@ -80,7 +66,7 @@ if 'te' in tiff_dir or 'wi' in tiff_dir or 'wa' in tiff_dir:
     print('路径中不能包含关键字te, wi, wa')
     exit()
 
-# 获取所有以'raster_wa'开头的TIFF文件  
+# 获取所有以'raster_wa'开头的TIFF文件
 tiff_files = glob.glob(os.path.join(tiff_dir, 'raster_wa*.tif'))
 tiff_files_const = tiff_files
 data_year = ['2004', '2007', '2010', '2013', '2016', '2019', '2022'] # 2004,2007,2010,2013,2016,2019,2022
@@ -125,7 +111,7 @@ for year in data_year:
     # outband.reshape(d, w, h)
     # 最后生成新的栅格并导出
     prefix_hot_tif = rasterio.open(
-        os.path.join(root_dir, f'workspace/tiff_result/{prefix}_wind.tif'),
+        os.path.join(root_dir, f'workspace/tiff_result/{prefix}_water.tif'),
         'w',
         driver='GTiff',
         height=outband.shape[0],
