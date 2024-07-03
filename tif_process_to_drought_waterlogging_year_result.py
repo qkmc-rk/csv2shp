@@ -47,7 +47,7 @@ def rule(tensor):
             tmp = tensor[ : ,row, col]
             tmp = (tmp < threshold).to(torch.int8)
             result[row, col] = max_one_serial(tmp)
-    return result
+    return result.numpy()
 
 # 定义一个函数来从文件名中提取日期  
 def extract_date_from_filename(filename):
@@ -108,6 +108,7 @@ for year in data_year:
     print('tensor转换完成...\n开始计算...')
 
     outband = rule(images_3d)   # result应该是一个(x*y的图像)
+    outband = np.asarray(outband, dtype=np.float32)
     # outband.reshape(d, w, h)
     # 最后生成新的栅格并导出
     prefix_hot_tif = rasterio.open(
